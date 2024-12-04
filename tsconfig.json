@@ -1,4 +1,24 @@
 // https://nitro.unjs.io/guide/typescript
 {
-  "extends": "./.nitro/types/tsconfig.json"
+	"extends": "./.nitro/types/tsconfig.json",
+	"compilerOptions": {
+    "module": "Node16",
+		"moduleResolution": "node16",
+		"target": "ES2015",
+
+    // "jsxFactory": "React.createElement",
+    // "jsxFragmentFactory": "React.Fragment",
+		// "jsx": "react-jsx",
+		// "jsxImportSource": "nano-jsx/lib",  // lib for CommonJS
+		// "jsxImportSource": "nano-jsx/esm", // esm for ESModules
+
+    "skipLibCheck": true,
+    "baseUrl": "./",
+    "paths": {
+      "react": ["./node_modules/preact/compat/"],
+      "react/jsx-runtime": ["./node_modules/preact/jsx-runtime"],
+      "react-dom": ["./node_modules/preact/compat/"],
+      "react-dom/*": ["./node_modules/preact/compat/*"]
+    }
+	}
 }
