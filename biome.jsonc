@@ -1,0 +1,78 @@
+{
+	"$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
+	"vcs": {
+		"enabled": true,
+		"clientKind": "git",
+		"defaultBranch": "main",
+		"useIgnoreFile": true,
+		"root": ".",
+	},
+	"files": {
+		"ignore": [
+			// build output
+			"_temp/**",
+			".coverage/**",
+			".nitro/**",
+			".output/**",
+		],
+		"ignoreUnknown": true,
+	},
+	"formatter": {
+		"enabled": true,
+		"ignore": ["**/__snapshots__/**"],
+		"formatWithErrors": true,
+		"indentStyle": "tab",
+		"lineEnding": "lf",
+	},
+	"organizeImports": { "enabled": true },
+	"linter": {
+		"enabled": true,
+		"include": ["config/**", "**/docs/**", "**/src/**", "**/test/**"],
+		"ignore": ["**/src/public/**"],
+		"rules": {
+			"all": true,
+			"correctness": {
+				"noUnusedVariables": "error",
+			},
+			"style": {
+				"noDefaultExport": "off",
+				"noParameterProperties": "off",
+				"useNamingConvention": "off",
+			},
+		},
+	},
+	"javascript": {
+		"formatter": {
+			"jsxQuoteStyle": "double",
+			"trailingCommas": "all",
+			"semicolons": "always",
+		},
+		"globals": [
+			// Nitro globals
+			"$fetch",
+			"defineEventHandler",
+			"eventHandler",
+			"getRouterParam",
+			"sendRedirect",
+			"useStorage",
+		],
+	},
+	"overrides": [
+		{
+			"include": [
+				"*.jsonc",
+				"*.json5",
+				"api-extractor*.json",
+				"tsconfig*.json",
+				".vscode/*.json",
+			],
+			"json": {
+				"parser": {
+					"allowComments": true,
+					"allowTrailingCommas": true,
+				},
+				"formatter": { "trailingCommas": "all" },
+			},
+		},
+	],
+}

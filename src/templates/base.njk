@@ -44,7 +44,7 @@
               <nav id="comic-nav" class="level is-mobile buttons" role="navigation">
                 <div class="level-left">
                   <div class="level-item">
-                    <a class="button is-outlined" href="/comic/{{ comic.num - 1 }}/" title="previous comic">« Previous</a>
+                    <a class="button is-outlined" href="/{{ comic.num - 1 }}/" title="previous comic">« Previous</a>
                   </div>
                 </div>
                 <div class="level-item">
@@ -52,8 +52,8 @@
                 </div>
                 <div class="level-right">
                   <div class="level-item">
-                    <a class="button is-outlined{% if ishome %} is-static{% endif %}"
-                      href="/comic/{{ comic.num + 1 }}/" title="next comic">Next »</a>
+                    <a class="button is-outlined{% if isHome %} is-static{% endif %}"
+                      href="/{{ comic.num + 1 }}/" title="next comic">Next »</a>
                   </div>
                 </div>
               </nav>
