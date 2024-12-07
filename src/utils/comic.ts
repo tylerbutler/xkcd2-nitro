@@ -57,20 +57,20 @@ export async function renderComicPage(
 	return html;
 }
 
-export const cachedLatestComic = cachedFunction(
-	async () => {
-		// Call without any arguments to get the latest comic details
-		const { comic } = await getComicProps();
-		return comic;
-	},
-	{
-		maxAge: 60 * 60, // 1 hour
-		name: "latestComicId",
-	},
-);
+const getLatestComic = async () => {
+	// Call without any arguments to get the latest comic details
+	const { comic } = await getComicProps();
+	return comic;
+};
+
+// biome-ignore lint/correctness/noUnusedVariables: <explanation>
+const cachedLatestComic = cachedFunction(getLatestComic, {
+	maxAge: 60 * 60, // 1 hour
+	name: "latestComicId",
+});
 
 export async function getRandomComicId(): Promise<number> {
-	const { num } = await cachedLatestComic();
+	const { num } = await getLatestComic();
 
 	// I don't think a cryptographically sound RNG is needed for this
 	const randomValue = Math.random();
