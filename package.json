@@ -9,6 +9,7 @@
 		"build:netlify": "nitro build --preset netlify",
 		"build:netlify-builder": "nitro build --preset netlify_builder",
 		"build:netlify-edge": "nitro build --preset netlify_edge",
+		"build:vercel": "nitro build --preset vercel",
 		"check": "npm run check:format",
 		"check:format": "biome format .",
 		"clean": "rimraf esm _temp *.tsbuildinfo *.done.build.log",
