@@ -19,6 +19,6 @@ export default defineNitroConfig({
 		cache: {
 			driver: "netlifyBlobs",
 			name: "xkcd2-nitro",
-		}
-	}
+		},
+	},
 });
