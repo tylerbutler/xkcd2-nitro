@@ -6,5 +6,4 @@ dist
 .output
 .env
 
-.netlify
 .vercel
