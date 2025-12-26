@@ -1,8 +1,6 @@
-export default eventHandler(
-	async (event) => {
-		const comicId = getRouterParam(event, "id");
-		const html = await renderComicPage(comicId);
-		return html;
-	},
-	// { maxAge: 60 * 60 /* 1 hour */ },
-);
+export default eventHandler(async (event) => {
+	setResponseHeader(event, "content-type", "text/html");
+	const comicId = getRouterParam(event, "id");
+	const html = await renderComicPage(comicId);
+	return html;
+});
