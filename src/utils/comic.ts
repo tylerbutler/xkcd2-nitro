@@ -49,14 +49,16 @@ export async function renderComicPage(
 	comicId?: string | number,
 ): Promise<string> {
 	const { comic } = await getComicProps(comicId);
-  console.debug(comic);
-	const template = await useStorage("assets:templates").getItem("base.njk");
-  console.debug(template);
-	const html = nunjucks.renderString(template.toString(), {
+	const templateData = await useStorage("assets:templates").getItem("base.njk");
+	// Template is stored as Uint8Array in production builds, need to decode it
+	const template =
+		templateData instanceof Uint8Array
+			? new TextDecoder().decode(templateData)
+			: String(templateData);
+	const html = nunjucks.renderString(template, {
 		comic,
 		isHome: comicId === undefined,
 	});
-  console.debug(html);
 	return html;
 }
 

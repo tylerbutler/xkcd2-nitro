@@ -5,11 +5,7 @@
 	"author": "Tyler Butler <tyler@tylerbutler.com>",
 	"type": "module",
 	"scripts": {
-		"build": "nitro build",
-		"build:netlify": "nitro build --preset netlify",
-		"build:netlify-builder": "nitro build --preset netlify_builder",
-		"build:netlify-edge": "nitro build --preset netlify_edge",
-		"build:vercel": "nitro build --preset vercel",
+		"build": "nitro build --preset vercel",
 		"check": "npm run check:format",
 		"check:format": "biome format .",
 		"clean": "rimraf esm _temp *.tsbuildinfo *.done.build.log",
@@ -22,7 +18,6 @@
 		"preview": "node .output/server/index.mjs"
 	},
 	"dependencies": {
-		"@netlify/blobs": "^8.1.0",
 		"nunjucks": "^3.2.4",
 		"typogr": "^0.6.8"
 	},

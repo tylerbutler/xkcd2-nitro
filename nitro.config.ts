@@ -15,10 +15,4 @@ export default defineNitroConfig({
 			dir: "./templates",
 		},
 	],
-	// storage: {
-	// 	cache: {
-	// 		driver: "netlifyBlobs",
-	// 		name: "xkcd2-nitro",
-	// 	},
-	// },
 });
