@@ -49,14 +49,11 @@ export async function renderComicPage(
 	comicId?: string | number,
 ): Promise<string> {
 	const { comic } = await getComicProps(comicId);
-  console.debug(comic);
 	const template = await useStorage("assets:templates").getItem("base.njk");
-  console.debug(template);
 	const html = nunjucks.renderString(template.toString(), {
 		comic,
 		isHome: comicId === undefined,
 	});
-  console.debug(html);
 	return html;
 }
 
