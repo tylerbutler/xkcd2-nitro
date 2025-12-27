@@ -15,4 +15,10 @@ export default defineNitroConfig({
 			dir: "./templates",
 		},
 	],
+	storage: {
+		xkcd: {
+			driver: "lruCache",
+			max: 500, // Cache up to 500 comics
+		},
+	},
 });
