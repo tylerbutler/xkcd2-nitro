@@ -15,4 +15,10 @@ export default defineNitroConfig({
 			dir: "./templates",
 		},
 	],
+	storage: {
+		xkcd: {
+			driver: "vercelKV",
+			// Uses KV_REST_API_URL and KV_REST_API_TOKEN environment variables
+		},
+	},
 });

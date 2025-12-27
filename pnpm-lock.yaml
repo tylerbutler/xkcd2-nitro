@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      '@vercel/kv':
+        specifier: ^3.0.0
+        version: 3.0.0
       nunjucks:
         specifier: ^3.2.4
         version: 3.2.4(chokidar@3.6.0)
@@ -26,7 +29,7 @@ importers:
         version: 3.2.6
       nitropack:
         specifier: latest
-        version: 2.10.4(@netlify/blobs@8.1.0)(typescript@5.4.5)
+        version: 2.10.4(@netlify/blobs@8.1.0)(@upstash/redis@1.36.0)(@vercel/kv@3.0.0)(typescript@5.4.5)
       repopo:
         specifier: ^0.3.1
         version: 0.3.1(@types/node@22.10.1)(typescript@5.4.5)
@@ -828,6 +831,13 @@ packages:
 
   '@types/resolve@1.20.2':
     resolution: {integrity: sha512-60BCwRFOZCQhDncwQdxxeOEEkbc5dIMccYLwbxsS4TUNeVECQ/pBJ0j09mrHOl/JJvpRPGwO9SvE4nR2Nb/a4Q==}
+
+  '@upstash/redis@1.36.0':
+    resolution: {integrity: sha512-9zN2UV9QJGPnXfWU3yZBLVQaqqENDh7g+Y4J2vJuSxBCi9FQ0aUOtaXlzuFhnsiZvCqM+eS27ic+tgmkWUsfOg==}
+
+  '@vercel/kv@3.0.0':
+    resolution: {integrity: sha512-pKT8fRnfyYk2MgvyB6fn6ipJPCdfZwiKDdw7vB+HL50rjboEBHDVBEcnwfkEpVSp2AjNtoaOUH7zG+bVC/rvSg==}
+    engines: {node: '>=14.6'}
 
   '@vercel/nft@0.27.7':
     resolution: {integrity: sha512-FG6H5YkP4bdw9Ll1qhmbxuE8KwW2E/g8fJpM183fWQLeVDGqzeywMIeJ9h2txdWZ03psgWMn6QymTxaDLmdwUg==}
@@ -3671,6 +3681,14 @@ snapshots:
 
   '@types/resolve@1.20.2': {}
 
+  '@upstash/redis@1.36.0':
+    dependencies:
+      uncrypto: 0.1.3
+
+  '@vercel/kv@3.0.0':
+    dependencies:
+      '@upstash/redis': 1.36.0
+
   '@vercel/nft@0.27.7(rollup@4.28.0)':
     dependencies:
       '@mapbox/node-pre-gyp': 1.0.11
@@ -4802,7 +4820,7 @@ snapshots:
 
   natural-orderby@3.0.2: {}
 
-  nitropack@2.10.4(@netlify/blobs@8.1.0)(typescript@5.4.5):
+  nitropack@2.10.4(@netlify/blobs@8.1.0)(@upstash/redis@1.36.0)(@vercel/kv@3.0.0)(typescript@5.4.5):
     dependencies:
       '@cloudflare/kv-asset-handler': 0.3.4
       '@netlify/functions': 2.8.2
@@ -4869,7 +4887,7 @@ snapshots:
       unctx: 2.3.1
       unenv: 1.10.0
       unimport: 3.14.3(rollup@4.28.0)
-      unstorage: 1.13.1(@netlify/blobs@8.1.0)(ioredis@5.4.1)
+      unstorage: 1.13.1(@netlify/blobs@8.1.0)(@upstash/redis@1.36.0)(@vercel/kv@3.0.0)(ioredis@5.4.1)
       untyped: 1.5.1
       unwasm: 0.3.9
     transitivePeerDependencies:
@@ -5586,7 +5604,7 @@ snapshots:
       acorn: 8.14.0
       webpack-virtual-modules: 0.6.2
 
-  unstorage@1.13.1(@netlify/blobs@8.1.0)(ioredis@5.4.1):
+  unstorage@1.13.1(@netlify/blobs@8.1.0)(@upstash/redis@1.36.0)(@vercel/kv@3.0.0)(ioredis@5.4.1):
     dependencies:
       anymatch: 3.1.3
       chokidar: 3.6.0
@@ -5600,6 +5618,8 @@ snapshots:
       ufo: 1.5.4
     optionalDependencies:
       '@netlify/blobs': 8.1.0
+      '@upstash/redis': 1.36.0
+      '@vercel/kv': 3.0.0
       ioredis: 5.4.1
 
   untun@0.1.3:

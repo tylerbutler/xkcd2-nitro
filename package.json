@@ -18,6 +18,7 @@
 		"preview": "node .output/server/index.mjs"
 	},
 	"dependencies": {
+		"@vercel/kv": "^3.0.0",
 		"nunjucks": "^3.2.4",
 		"typogr": "^0.6.8"
 	},
