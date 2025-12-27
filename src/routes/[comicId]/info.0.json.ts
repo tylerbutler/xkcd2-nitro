@@ -1,8 +1,10 @@
 import { getCachedComic } from "../../utils/xkcd-cache";
 
 export default defineEventHandler(async (event) => {
+	const comicId = getRouterParam(event, "comicId");
+
 	try {
-		const result = await getCachedComic();
+		const result = await getCachedComic(comicId);
 
 		setResponseHeader(event, "X-Cache", result.cacheHit ? "HIT" : "MISS");
 		if (result.cacheAge !== undefined) {
@@ -19,7 +21,7 @@ export default defineEventHandler(async (event) => {
 		) {
 			throw createError({
 				statusCode: 404,
-				statusMessage: "Comic not found",
+				statusMessage: `Comic ${comicId} not found`,
 			});
 		}
 		throw error;

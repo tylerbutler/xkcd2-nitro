@@ -18,9 +18,9 @@ nunjucks.addFilter("typogrify", (input: string) => {
 
 function getComicUrl(comicId?: string | number) {
 	if (comicId === undefined || comicId === "") {
-		return "/xkcd/info.0.json";
+		return "/info.0.json";
 	}
-	return `/xkcd/${comicId}/info.0.json`;
+	return `/${comicId}/info.0.json`;
 }
 
 async function getComicProps(
