@@ -3,10 +3,12 @@ import { createElement } from "react";
 
 import { getCachedComic } from "../../utils/xkcd-cache";
 
+const COMIC_ID_PATTERN = /^\d+$/;
+
 export default defineEventHandler(async (event) => {
 	const comicId = getRouterParam(event, "id");
 
-	if (!comicId || !/^\d+$/.test(comicId)) {
+	if (!COMIC_ID_PATTERN.test(comicId ?? "")) {
 		throw createError({
 			statusCode: 400,
 			statusMessage: "Invalid comic ID",
@@ -92,17 +94,14 @@ export default defineEventHandler(async (event) => {
 				comic.alt.length > 220 ? `${comic.alt.slice(0, 217)}…` : comic.alt,
 			),
 		),
-		createElement(
-			"div",
-			{
-				style: {
-					display: "flex",
-					height: 8,
-					backgroundColor: "#f5a623",
-					borderRadius: 4,
-				},
+		createElement("div", {
+			style: {
+				display: "flex",
+				height: 8,
+				backgroundColor: "#f5a623",
+				borderRadius: 4,
 			},
-		),
+		}),
 	);
 
 	return new ImageResponse(image, { width: 1200, height: 630 });
