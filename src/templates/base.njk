@@ -14,6 +14,16 @@
 
     <title>xkcd 2:
       {{ comic.safe_title }}</title>
+    <meta property="og:title" content="xkcd 2: {{ comic.safe_title }}"/>
+    <meta property="og:description" content="{{ comic.alt|escape }}"/>
+    <meta property="og:type" content="article"/>
+    <meta property="og:image" content="{{ origin }}/og/{{ comic.num }}.png"/>
+    <meta property="og:image:width" content="1200"/>
+    <meta property="og:image:height" content="630"/>
+    <meta name="twitter:card" content="summary_large_image"/>
+    <meta name="twitter:title" content="xkcd 2: {{ comic.safe_title }}"/>
+    <meta name="twitter:description" content="{{ comic.alt|escape }}"/>
+    <meta name="twitter:image" content="{{ origin }}/og/{{ comic.num }}.png"/>
 
     <link rel="stylesheet" href="https://use.typekit.net/zst8lfn.css">
     <link rel="stylesheet" href="/css/main.min.css">
