@@ -42,6 +42,10 @@ const comic = {
 	alt: "Don't we all.",
 	img: "https://imgs.xkcd.com/comics/barrel_cropped_(1).jpg",
 };
+const artworkRequests = [];
+let artworkData;
+let artworkStatus = 200;
+let artworkContentType = "image/png";
 const longComic = { ...comic, num: 2, alt: "A long caption. ".repeat(30) };
 let directory;
 let nitro;
@@ -55,9 +59,21 @@ before(async () => {
 			import.meta.url,
 		),
 	);
+	artworkData = await readFile(
+		new URL("../src/public/android-chrome-192x192.png", import.meta.url),
+	);
 	const originalFetch = globalThis.fetch;
 	mock.method(globalThis, "fetch", (input, options) => {
 		const url = new URL(input instanceof Request ? input.url : input);
+		if (url.href === comic.img) {
+			artworkRequests.push(url.href);
+			return Promise.resolve(
+				new Response(artworkData, {
+					status: artworkStatus,
+					headers: { "content-type": artworkContentType },
+				}),
+			);
+		}
 		if (url.hostname !== "use.typekit.net") {
 			return originalFetch(input, options);
 		}
@@ -186,6 +202,7 @@ for (const path of ["/", "/1/"]) {
 for (const id of [1, 2]) {
 	test(`/og/${id}.png returns a complete 1200x630 PNG`, async () => {
 		const requestCount = fontRequests.length;
+		const artworkRequestCount = artworkRequests.length;
 		const response = await fetch(`${origin}/og/${id}.png`);
 		assert.equal(response.status, 200);
 		assert.equal(response.headers.get("content-type"), "image/png");
@@ -202,6 +219,35 @@ for (const id of [1, 2]) {
 			"IEND",
 		);
 		assert.equal(fontRequests.length, requestCount + (id === 1 ? 3 : 0));
+		assert.equal(artworkRequests.length, artworkRequestCount + 1);
+		assert.equal(artworkRequests.at(-1), comic.img);
+	});
+}
+
+for (const { status, contentType, message } of [
+	{
+		status: 503,
+		contentType: "image/png",
+		message: "Failed to load comic artwork",
+	},
+	{
+		status: 200,
+		contentType: "text/html",
+		message: "Unsupported comic artwork format",
+	},
+]) {
+	test(`artwork errors are explicit: ${message}`, async () => {
+		artworkStatus = status;
+		artworkContentType = contentType;
+		try {
+			const response = await fetch(`${origin}/og/1.png`);
+			assert.equal(response.status, 502);
+			const error = await response.json();
+			assert.equal(error.statusMessage, message);
+		} finally {
+			artworkStatus = 200;
+			artworkContentType = "image/png";
+		}
 	});
 }
 

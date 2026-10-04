@@ -12,6 +12,10 @@ and Museo Sans for the caption and comic number. Font files are fetched on the
 first image request and reused for later requests in the same server process.
 The server needs access to `use.typekit.net` to load them.
 
+The logo badge and accent bar use the site's blue.
+Each image uses a zoomed crop of its comic as a faint background so the title and
+caption stay readable. The server also needs access to the comic image host.
+
 Example for [comic #1](https://xkcd.com/1/), with the `xkcd2` text logo:
 
 ![Open Graph image for Barrel - Part 1](docs/og-example.png)
@@ -21,4 +25,5 @@ The comic title and caption are by Randall Munroe, used under
 
 Run `pnpm test` to check the page metadata and image responses against a Vercel
 production build. The tests use an in-memory comic cache and do not need Vercel KV
-credentials or access to the xkcd API. Adobe Fonts requests use local fixtures.
+credentials or access to the xkcd API. Adobe Fonts and comic artwork requests use
+local fixtures.
