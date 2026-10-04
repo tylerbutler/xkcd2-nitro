@@ -47,6 +47,7 @@ async function getComicProps(
 
 export async function renderComicPage(
 	comicId?: string | number,
+	origin = "",
 ): Promise<string> {
 	const { comic, nextId } = await getComicProps(comicId);
 	const templateData = await useStorage("assets:templates").getItem("base.njk");
