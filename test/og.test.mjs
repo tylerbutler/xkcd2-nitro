@@ -1,12 +1,40 @@
 import assert from "node:assert/strict";
 import { once } from "node:events";
-import { mkdtemp, rm } from "node:fs/promises";
+import { mkdtemp, readFile, rm } from "node:fs/promises";
 import { createServer } from "node:http";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { after, before, mock, test } from "node:test";
 import { pathToFileURL } from "node:url";
 import { build, createNitro } from "nitropack";
+
+import { getOgFonts } from "../src/utils/og-fonts.ts";
+
+const fontFamilies = ["museo-sans", "museo-slab"];
+const fontStylesheet = fontFamilies
+	.map(
+		(name) => `
+			@font-face {
+				font-family:"${name}";font-style:italic;font-weight:300;
+				src:url("https://use.typekit.net/test/${name}-italic.woff") format("woff");
+			}
+			@font-face {
+				font-family:"${name}";font-style:normal;font-weight:700;
+				src:url("https://use.typekit.net/test/${name}-bold.woff") format("woff");
+			}
+			@font-face {
+				font-family:"${name}";font-style:normal;font-weight:300;
+				src:url("https://use.typekit.net/test/${name}.woff2") format("woff2"),
+					url("https://use.typekit.net/test/${name}.woff") format("woff");
+			}
+		`,
+	)
+	.join("\n");
+const fontRequests = [];
+let stylesheetStatus = 200;
+let stylesheetBody = fontStylesheet;
+let fontStatus = 200;
+let fontData;
 
 const comic = {
 	num: 1,
@@ -21,6 +49,30 @@ let server;
 let origin;
 
 before(async () => {
+	fontData = await readFile(
+		new URL(
+			"../node_modules/@vercel/og/dist/noto-sans-v27-latin-regular.ttf",
+			import.meta.url,
+		),
+	);
+	const originalFetch = globalThis.fetch;
+	mock.method(globalThis, "fetch", (input, options) => {
+		const url = new URL(input instanceof Request ? input.url : input);
+		if (url.hostname !== "use.typekit.net") {
+			return originalFetch(input, options);
+		}
+		fontRequests.push(url.href);
+		if (url.pathname === "/zst8lfn.css") {
+			return Promise.resolve(
+				new Response(stylesheetBody, { status: stylesheetStatus }),
+			);
+		}
+		if (fontFamilies.some((name) => url.pathname === `/test/${name}.woff`)) {
+			return Promise.resolve(new Response(fontData, { status: fontStatus }));
+		}
+		throw new Error(`Unexpected font request: ${url.href}`);
+	});
+
 	directory = await mkdtemp(join(tmpdir(), "xkcd2-og-"));
 	const fixturePlugin = join(directory, "fixtures.mjs");
 	nitro = await createNitro({
@@ -78,6 +130,44 @@ after(async () => {
 	}
 });
 
+test("font load failures are explicit and can be retried", async () => {
+	stylesheetStatus = 503;
+	await assert.rejects(getOgFonts(), {
+		message: "Failed to load the site font stylesheet: 503",
+	});
+	stylesheetStatus = 200;
+	stylesheetBody = "";
+	await assert.rejects(getOgFonts(), {
+		message:
+			"The site font stylesheet is missing museo-sans normal 300 in WOFF format",
+	});
+	stylesheetBody = fontStylesheet;
+	fontStatus = 503;
+	await assert.rejects(getOgFonts(), {
+		message: "Failed to load museo-sans: 503",
+	});
+	fontStatus = 200;
+});
+
+test("loads and caches the site's normal Museo fonts using WOFF URLs", async () => {
+	const requestCount = fontRequests.length;
+	const [fonts, concurrentFonts] = await Promise.all([
+		getOgFonts(),
+		getOgFonts(),
+	]);
+	assert.equal(concurrentFonts, fonts);
+	assert.equal(fontRequests.length, requestCount + 3);
+	assert.deepEqual(
+		fonts.map(({ name, weight, style }) => ({ name, weight, style })),
+		fontFamilies.map((name) => ({ name, weight: 300, style: "normal" })),
+	);
+	for (const font of fonts) {
+		assert.deepEqual(Buffer.from(font.data), fontData);
+	}
+	assert.equal(await getOgFonts(), fonts);
+	assert.equal(fontRequests.length, requestCount + 3);
+});
+
 for (const path of ["/", "/1/"]) {
 	test(`${path} uses absolute social image URLs`, async () => {
 		const response = await fetch(`${origin}${path}`);
@@ -89,11 +179,13 @@ for (const path of ["/", "/1/"]) {
 		assert.ok(
 			html.includes('content="xkcd 2: A &quot;quoted&quot; title &amp; comic"'),
 		);
+		assert.ok(html.includes('href="https://use.typekit.net/zst8lfn.css"'));
 	});
 }
 
 for (const id of [1, 2]) {
 	test(`/og/${id}.png returns a complete 1200x630 PNG`, async () => {
+		const requestCount = fontRequests.length;
 		const response = await fetch(`${origin}/og/${id}.png`);
 		assert.equal(response.status, 200);
 		assert.equal(response.headers.get("content-type"), "image/png");
@@ -109,6 +201,7 @@ for (const id of [1, 2]) {
 			image.toString("ascii", image.length - 8, image.length - 4),
 			"IEND",
 		);
+		assert.equal(fontRequests.length, requestCount + (id === 1 ? 3 : 0));
 	});
 }
 

@@ -1,6 +1,7 @@
 import { ImageResponse } from "@vercel/og";
 import { createElement } from "react";
 
+import { getOgFonts } from "../../utils/og-fonts";
 import { getCachedComic } from "../../utils/xkcd-cache";
 
 const COMIC_IMAGE_PATTERN = /^(\d+)\.png$/;
@@ -16,6 +17,7 @@ export default defineEventHandler(async (event) => {
 	}
 
 	const { comic } = await getCachedComic(match[1]);
+	const fonts = await getOgFonts();
 
 	const image = createElement(
 		"div",
@@ -29,7 +31,8 @@ export default defineEventHandler(async (event) => {
 				padding: "64px 72px",
 				backgroundColor: "#fffaf0",
 				color: "#202020",
-				fontFamily: "sans-serif",
+				fontFamily: "museo-sans",
+				fontWeight: 400,
 			},
 		},
 		createElement(
@@ -43,7 +46,13 @@ export default defineEventHandler(async (event) => {
 			},
 			createElement(
 				"div",
-				{ style: { display: "flex", fontSize: 40, fontWeight: 700 } },
+				{
+					style: {
+						display: "flex",
+						fontSize: 40,
+						fontFamily: "museo-slab",
+					},
+				},
 				createElement("span", {}, "xkcd"),
 				createElement("span", { style: { color: "#f5a623" } }, "2"),
 			),
@@ -76,7 +85,8 @@ export default defineEventHandler(async (event) => {
 				{
 					style: {
 						fontSize: 58,
-						fontWeight: 700,
+						fontFamily: "museo-slab",
+						fontWeight: 300,
 						lineHeight: 1.1,
 					},
 				},
@@ -104,5 +114,5 @@ export default defineEventHandler(async (event) => {
 		}),
 	);
 
-	return new ImageResponse(image, { width: 1200, height: 630 });
+	return new ImageResponse(image, { width: 1200, height: 630, fonts });
 });
