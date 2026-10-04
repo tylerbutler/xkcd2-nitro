@@ -59,6 +59,14 @@
 	},
 	"overrides": [
 		{
+			"include": ["test/**"],
+			"linter": {
+				"rules": {
+					"correctness": { "noNodejsModules": "off" },
+				},
+			},
+		},
+		{
 			"include": [
 				"*.jsonc",
 				"*.json5",

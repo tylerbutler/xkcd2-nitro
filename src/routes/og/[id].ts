@@ -3,19 +3,19 @@ import { createElement } from "react";
 
 import { getCachedComic } from "../../utils/xkcd-cache";
 
-const COMIC_ID_PATTERN = /^\d+$/;
+const COMIC_IMAGE_PATTERN = /^(\d+)\.png$/;
 
 export default defineEventHandler(async (event) => {
-	const comicId = getRouterParam(event, "id");
+	const match = getRouterParam(event, "id")?.match(COMIC_IMAGE_PATTERN);
 
-	if (!COMIC_ID_PATTERN.test(comicId ?? "")) {
+	if (!match) {
 		throw createError({
 			statusCode: 400,
 			statusMessage: "Invalid comic ID",
 		});
 	}
 
-	const { comic } = await getCachedComic(comicId);
+	const { comic } = await getCachedComic(match[1]);
 
 	const image = createElement(
 		"div",
@@ -43,7 +43,7 @@ export default defineEventHandler(async (event) => {
 			},
 			createElement(
 				"div",
-				{ style: { fontSize: 40, fontWeight: 700 } },
+				{ style: { display: "flex", fontSize: 40, fontWeight: 700 } },
 				createElement("span", {}, "xkcd"),
 				createElement("span", { style: { color: "#f5a623" } }, "2"),
 			),

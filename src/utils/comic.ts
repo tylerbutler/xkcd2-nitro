@@ -59,6 +59,7 @@ export async function renderComicPage(
 	const html = nunjucks.renderString(template, {
 		comic,
 		nextId,
+		origin,
 	});
 	return html;
 }

@@ -15,7 +15,8 @@
 		"lint": "biome lint .",
 		"lint:fix": "biome lint . --write",
 		"prepare": "nitro prepare",
-		"preview": "node .output/server/index.mjs"
+		"preview": "node .output/server/index.mjs",
+		"test": "node --test test/*.test.mjs"
 	},
 	"dependencies": {
 		"@vercel/kv": "^3.0.0",
