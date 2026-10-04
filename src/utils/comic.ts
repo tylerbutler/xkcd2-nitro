@@ -48,7 +48,7 @@ async function getComicProps(
 export async function renderComicPage(
 	comicId?: string | number,
 ): Promise<string> {
-	const { comic } = await getComicProps(comicId);
+	const { comic, nextId } = await getComicProps(comicId);
 	const templateData = await useStorage("assets:templates").getItem("base.njk");
 	// Template is stored as Uint8Array in production builds, need to decode it
 	const template =
@@ -57,7 +57,7 @@ export async function renderComicPage(
 			: String(templateData);
 	const html = nunjucks.renderString(template, {
 		comic,
-		isHome: comicId === undefined,
+		nextId,
 	});
 	return html;
 }
