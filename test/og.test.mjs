@@ -46,7 +46,13 @@ const artworkRequests = [];
 let artworkData;
 let artworkStatus = 200;
 let artworkContentType = "image/png";
-const longComic = { ...comic, num: 2, alt: "A long caption. ".repeat(30) };
+const longComic = { ...comic, alt: "A long caption. ".repeat(30) };
+const longTitleComic = {
+	...comic,
+	num: 3,
+	safe_title:
+		"A longer comic title that wraps onto a second line above the blue accent bar",
+};
 let directory;
 let nitro;
 let server;
@@ -105,9 +111,11 @@ before(async () => {
 					const storage = useStorage("xkcd");
 					const comic = ${JSON.stringify(comic)};
 					const longComic = ${JSON.stringify(longComic)};
+					const longTitleComic = ${JSON.stringify(longTitleComic)};
 					const cachedAt = Date.now();
 					await storage.setItem("comic:1", { comic, cachedAt });
 					await storage.setItem("comic:2", { comic: longComic, cachedAt });
+					await storage.setItem("comic:3", { comic: longTitleComic, cachedAt });
 					await storage.setItem("latest", { comic, cachedAt });
 				});
 			`,
@@ -199,7 +207,7 @@ for (const path of ["/", "/1/"]) {
 	});
 }
 
-for (const id of [1, 2]) {
+for (const id of [1, 2, 3]) {
 	test(`/og/${id}.png returns a complete 1200x630 PNG`, async () => {
 		const requestCount = fontRequests.length;
 		const artworkRequestCount = artworkRequests.length;
@@ -223,6 +231,17 @@ for (const id of [1, 2]) {
 		assert.equal(artworkRequests.at(-1), comic.img);
 	});
 }
+
+test("OG images do not include the secondary caption", async () => {
+	const images = await Promise.all(
+		[1, 2].map(async (id) => {
+			const response = await fetch(`${origin}/og/${id}.png`);
+			assert.equal(response.status, 200);
+			return Buffer.from(await response.arrayBuffer());
+		}),
+	);
+	assert.deepEqual(images[0], images[1]);
+});
 
 for (const { status, contentType, message } of [
 	{

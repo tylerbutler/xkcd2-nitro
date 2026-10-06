@@ -135,7 +135,7 @@ export default defineEventHandler(async (event) => {
 				style: {
 					display: "flex",
 					flexDirection: "column",
-					gap: 22,
+					gap: 24,
 					maxWidth: "100%",
 				},
 			},
@@ -143,34 +143,25 @@ export default defineEventHandler(async (event) => {
 				"div",
 				{
 					style: {
-						fontSize: 58,
+						fontSize: 64,
 						fontFamily: "museo-slab",
 						fontWeight: 300,
 						lineHeight: 1.1,
+						textAlign: "left",
 					},
 				},
 				comic.safe_title,
 			),
-			createElement(
-				"div",
-				{
-					style: {
-						fontSize: 27,
-						lineHeight: 1.35,
-						color: "#555",
-					},
+			createElement("div", {
+				style: {
+					display: "flex",
+					height: 8,
+					flexShrink: 0,
+					backgroundColor: ACCENT_COLOR,
+					borderRadius: 4,
 				},
-				comic.alt.length > 220 ? `${comic.alt.slice(0, 217)}…` : comic.alt,
-			),
+			}),
 		),
-		createElement("div", {
-			style: {
-				display: "flex",
-				height: 8,
-				backgroundColor: ACCENT_COLOR,
-				borderRadius: 4,
-			},
-		}),
 	);
 
 	return new ImageResponse(image, { width: 1200, height: 630, fonts });
