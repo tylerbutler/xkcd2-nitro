@@ -6,7 +6,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { after, before, mock, test } from "node:test";
 import { pathToFileURL } from "node:url";
-import { build, createNitro } from "nitropack";
+import { build, copyPublicAssets, createNitro } from "nitropack";
 
 import { getOgFonts } from "../src/utils/og-fonts.ts";
 
@@ -41,7 +41,12 @@ const comic = {
 	safe_title: 'A "quoted" title & comic',
 	alt: "Don't we all.",
 	img: "https://imgs.xkcd.com/comics/barrel_cropped_(1).jpg",
+	transcript:
+		'[[A boy floats in a barrel.]]\nBoy: "Where next?"\n{{Alt: Don\'t we all.}}',
 };
+let latestComic = comic;
+let apiStatus = 200;
+let testClock = Date.now();
 const artworkRequests = [];
 let artworkData;
 let artworkStatus = 200;
@@ -50,6 +55,7 @@ const longComic = { ...comic, alt: "A long caption. ".repeat(30) };
 const longTitleComic = {
 	...comic,
 	num: 3,
+	transcript: "",
 	safe_title:
 		"A longer comic title that wraps onto a second line above the blue accent bar",
 };
@@ -71,6 +77,16 @@ before(async () => {
 	const originalFetch = globalThis.fetch;
 	mock.method(globalThis, "fetch", (input, options) => {
 		const url = new URL(input instanceof Request ? input.url : input);
+		if (url.hostname === "xkcd.com") {
+			const status =
+				apiStatus === 200 && url.pathname !== "/info.0.json" ? 404 : apiStatus;
+			return Promise.resolve(
+				new Response(JSON.stringify(status === 200 ? latestComic : {}), {
+					status,
+					headers: { "content-type": "application/json" },
+				}),
+			);
+		}
 		if (url.href === comic.img) {
 			artworkRequests.push(url.href);
 			return Promise.resolve(
@@ -116,11 +132,15 @@ before(async () => {
 					await storage.setItem("comic:1", { comic, cachedAt });
 					await storage.setItem("comic:2", { comic: longComic, cachedAt });
 					await storage.setItem("comic:3", { comic: longTitleComic, cachedAt });
+					for (const num of [403, 405, 9999]) {
+						await storage.setItem("comic:" + num, { comic: { ...comic, num }, cachedAt });
+					}
 					await storage.setItem("latest", { comic, cachedAt });
 				});
 			`,
 		},
 	});
+	await copyPublicAssets(nitro);
 	await build(nitro);
 	const { default: nunjucks } = await import(
 		pathToFileURL(
@@ -207,7 +227,7 @@ for (const path of ["/", "/1/"]) {
 	});
 }
 
-for (const id of [1, 2, 3]) {
+for (const id of [1, 2, 3, 9999]) {
 	test(`/og/${id}.png returns a complete 1200x630 PNG`, async () => {
 		const requestCount = fontRequests.length;
 		const artworkRequestCount = artworkRequests.length;
@@ -278,3 +298,123 @@ for (const path of ["/og/1", "/og/invalid.png", "/og/1.jpg"]) {
 		assert.equal(error.statusMessage, "Invalid comic ID");
 	});
 }
+
+test("first and latest boundaries disable unavailable navigation", async () => {
+	const response = await fetch(`${origin}/1/`);
+	assert.equal(response.status, 200);
+	const html = await response.text();
+	assert.ok(!html.includes('href="/0/"'));
+	assert.match(html, /aria-disabled="true" title="First comic"/);
+	assert.match(html, /aria-disabled="true" title="next comic"/);
+});
+
+test("reader artwork has an escaped transcript and an image-only full-size link", async () => {
+	const response = await fetch(`${origin}/1/`);
+	const html = await response.text();
+	assert.ok(
+		html.includes(
+			'alt="[[A boy floats in a barrel.]] Boy: &quot;Where next?&quot;"',
+		),
+	);
+	assert.ok(
+		html.includes('aria-label="Open full-size comic: A &quot;quoted&quot;'),
+	);
+	assert.ok(html.includes(`class="comic-image-link" href="${comic.img}"`));
+	assert.ok(!html.includes("image-link-label"));
+	assert.equal(html.split("Open full-size comic").length, 2);
+	assert.ok(html.includes('<main id="reader"'));
+	assert.ok(html.includes('aria-label="Comic navigation"'));
+	assert.equal((html.match(/<h1\b/g) ?? []).length, 1);
+	assert.ok(html.includes('href="/css/reader.css"'));
+});
+
+test("missing transcripts are identified without inventing artwork descriptions", async () => {
+	const response = await fetch(`${origin}/3/`);
+	const html = await response.text();
+	assert.ok(html.includes("No transcript is available."));
+});
+
+test("the scoped reader stylesheet is served in production", async () => {
+	const response = await fetch(`${origin}/css/reader.css`);
+	assert.equal(response.status, 200);
+	assert.match(response.headers.get("content-type"), /text\/css/);
+	assert.ok((await response.text()).includes("#comic-nav .button"));
+});
+
+for (const path of ["/0/", "/404/", "/999999/", "/-1/", "/1.5/"]) {
+	test(`${path} has an HTML recovery page and keeps its 404 status`, async () => {
+		const response = await fetch(`${origin}${path}`);
+		assert.equal(response.status, 404);
+		assert.match(response.headers.get("content-type"), /text\/html/);
+		const html = await response.text();
+		assert.ok(html.includes("Comic not found"));
+		assert.ok(html.includes('href="/">Latest comic</a>'));
+		assert.ok(html.includes('href="/random/">Random comic</a>'));
+		assert.ok(html.includes('name="robots" content="noindex"'));
+		assert.ok(!html.includes('property="og:image"'));
+		assert.ok(html.indexOf("</main>") > html.indexOf('id="recovery-nav"'));
+	});
+}
+
+test("JSON clients keep structured missing-comic errors", async () => {
+	const response = await fetch(`${origin}/404/info.0.json`);
+	assert.equal(response.status, 404);
+	assert.match(response.headers.get("content-type"), /application\/json/);
+	assert.equal((await response.json()).statusCode, 404);
+});
+
+test("random includes both endpoints and skips the archive gap", async (t) => {
+	let randomValue = 0;
+	t.mock.method(Math, "random", () => randomValue);
+	t.mock.method(Date, "now", () => testClock);
+	for (const { latest, sample, expected } of [
+		{ latest: 1, sample: 0, expected: 1 },
+		{ latest: 1, sample: 1 - Number.EPSILON, expected: 1 },
+		{ latest: 3, sample: 0, expected: 1 },
+		{ latest: 3, sample: 1 - Number.EPSILON, expected: 3 },
+		{ latest: 403, sample: 1 - Number.EPSILON, expected: 403 },
+		{ latest: 405, sample: 403.5 / 404, expected: 405 },
+		{ latest: 406, sample: 402.5 / 405, expected: 403 },
+		{ latest: 406, sample: 403.5 / 405, expected: 405 },
+		{ latest: 406, sample: 1 - Number.EPSILON, expected: 406 },
+	]) {
+		testClock += 60 * 60 * 1000 + 1;
+		latestComic = { ...comic, num: latest };
+		randomValue = sample;
+		const response = await fetch(`${origin}/random/`, { redirect: "manual" });
+		assert.equal(response.status, 302);
+		assert.equal(response.headers.get("location"), `/${expected}`);
+	}
+});
+
+test("sequential browsing skips comic 404 in both directions", async () => {
+	for (const [id, neighbor] of [
+		[403, 405],
+		[405, 403],
+	]) {
+		const response = await fetch(`${origin}/${id}/`);
+		assert.equal(response.status, 200);
+		const html = await response.text();
+		assert.ok(html.includes(`href="/${neighbor}/"`));
+		assert.ok(!html.includes('href="/404/"'));
+	}
+});
+
+test("upstream outages keep their error status and offer retry", async (t) => {
+	apiStatus = 503;
+	testClock += 60 * 60 * 1000 + 1;
+	t.mock.method(Date, "now", () => testClock);
+	try {
+		for (const path of ["/999998/", "/", "/random/"]) {
+			const response = await fetch(`${origin}${path}`);
+			assert.equal(response.status, 503);
+			assert.match(response.headers.get("content-type"), /text\/html/);
+			const html = await response.text();
+			assert.ok(html.includes("Comic unavailable"));
+			assert.ok(html.includes(`href="${path}">Try again</a>`));
+			assert.ok(html.includes('href="/">Latest comic</a>'));
+		}
+	} finally {
+		apiStatus = 200;
+	}
+});
