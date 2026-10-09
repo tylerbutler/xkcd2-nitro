@@ -4,6 +4,10 @@ const XKCD_BASE_URL = "https://xkcd.com";
 const CACHE_PREFIX = "comic:";
 const LATEST_CACHE_KEY = "latest";
 const LATEST_CACHE_TTL = 60 * 60; // 1 hour for latest comic
+const COMIC_ID_PATTERN = /^\d+$/;
+
+// xkcd deliberately has no comic 404.
+export const MISSING_COMIC_ID = 404;
 
 interface CachedComic {
 	comic: Comic;
@@ -27,6 +31,21 @@ export async function getCachedComic(
 	comicId?: string | number,
 ): Promise<CacheResult> {
 	const isLatest = comicId === undefined || comicId === "";
+	const numericId = Number(comicId);
+	if (
+		!isLatest &&
+		!(
+			COMIC_ID_PATTERN.test(String(comicId)) &&
+			Number.isSafeInteger(numericId) &&
+			numericId >= 1 &&
+			numericId !== MISSING_COMIC_ID
+		)
+	) {
+		throw createError({
+			statusCode: 404,
+			statusMessage: "Comic not found",
+		});
+	}
 	const storage = useStorage("xkcd");
 	const cacheKey = isLatest ? LATEST_CACHE_KEY : `${CACHE_PREFIX}${comicId}`;
 

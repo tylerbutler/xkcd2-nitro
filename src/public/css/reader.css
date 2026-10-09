@@ -1,0 +1,54 @@
+#comic h1 {
+	font-size: clamp(2rem, 1rem + 4vw, 4rem);
+	word-break: normal;
+	overflow-wrap: break-word;
+	text-wrap: balance;
+}
+
+#main .site-title {
+	min-block-size: 4.375rem;
+}
+
+.comic-image-link {
+	display: block;
+}
+
+.comic-image-link img {
+	display: block;
+	margin-inline: auto;
+}
+
+.image-link-label {
+	display: inline-block;
+	margin-block-start: 0.75rem;
+	font-size: 0.875rem;
+	text-decoration: underline;
+	text-underline-offset: 0.15em;
+}
+
+a:focus-visible {
+	outline: 2px solid currentColor;
+	outline-offset: 4px;
+}
+
+#comic-nav {
+	flex-wrap: wrap;
+	gap: 0.5rem;
+}
+
+#comic-nav .level-left,
+#comic-nav .level-right,
+#comic-nav .level-item {
+	margin: 0;
+}
+
+#comic-nav .button,
+#recovery-nav .button {
+	min-block-size: 2.75rem;
+	min-inline-size: 2.75rem;
+	block-size: auto;
+	padding-block: 0.5rem;
+	padding-inline: 0.5rem;
+	white-space: normal;
+	text-align: center;
+}
