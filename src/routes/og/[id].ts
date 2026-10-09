@@ -120,8 +120,8 @@ export default defineEventHandler(async (event) => {
 				{
 					style: {
 						fontSize: 22,
-						color: "#666",
-						border: "2px solid #ddd",
+						color: "#fff",
+						backgroundColor: ACCENT_COLOR,
 						borderRadius: 999,
 						padding: "10px 18px",
 					},

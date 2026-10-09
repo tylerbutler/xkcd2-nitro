@@ -12,7 +12,8 @@ and Museo Sans for the comic number. Font files are fetched on the
 first image request and reused for later requests in the same server process.
 The server needs access to `use.typekit.net` to load them.
 
-The logo badge and accent bar use the site's blue.
+The logo badge, comic-number pill, and accent bar use the site's blue. The comic
+number is white on blue.
 Each image uses a zoomed crop of its comic as a faint background. The 64-pixel
 title is aligned left, just above the blue accent bar, with no caption.
 The server also needs access to the comic image host.

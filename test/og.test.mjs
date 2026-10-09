@@ -132,7 +132,7 @@ before(async () => {
 					await storage.setItem("comic:1", { comic, cachedAt });
 					await storage.setItem("comic:2", { comic: longComic, cachedAt });
 					await storage.setItem("comic:3", { comic: longTitleComic, cachedAt });
-					for (const num of [403, 405]) {
+					for (const num of [403, 405, 9999]) {
 						await storage.setItem("comic:" + num, { comic: { ...comic, num }, cachedAt });
 					}
 					await storage.setItem("latest", { comic, cachedAt });
@@ -227,7 +227,7 @@ for (const path of ["/", "/1/"]) {
 	});
 }
 
-for (const id of [1, 2, 3]) {
+for (const id of [1, 2, 3, 9999]) {
 	test(`/og/${id}.png returns a complete 1200x630 PNG`, async () => {
 		const requestCount = fontRequests.length;
 		const artworkRequestCount = artworkRequests.length;
@@ -308,7 +308,7 @@ test("first and latest boundaries disable unavailable navigation", async () => {
 	assert.match(html, /aria-disabled="true" title="next comic"/);
 });
 
-test("reader artwork has an escaped transcript and a named full-size action", async () => {
+test("reader artwork has an escaped transcript and an image-only full-size link", async () => {
 	const response = await fetch(`${origin}/1/`);
 	const html = await response.text();
 	assert.ok(
@@ -319,7 +319,9 @@ test("reader artwork has an escaped transcript and a named full-size action", as
 	assert.ok(
 		html.includes('aria-label="Open full-size comic: A &quot;quoted&quot;'),
 	);
-	assert.ok(html.includes("Open full-size comic</span>"));
+	assert.ok(html.includes(`class="comic-image-link" href="${comic.img}"`));
+	assert.ok(!html.includes("image-link-label"));
+	assert.equal(html.split("Open full-size comic").length, 2);
 	assert.ok(html.includes('<main id="reader"'));
 	assert.ok(html.includes('aria-label="Comic navigation"'));
 	assert.equal((html.match(/<h1\b/g) ?? []).length, 1);
